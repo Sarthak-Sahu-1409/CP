@@ -19,62 +19,95 @@
 #define mod 1000000007
 #define modd 998244353
 #define endl '\n'
-#define watch(x) cout<<(#x)<<" : "<<(x)<<endl
+#define watch(x) cout<<"The value of "<<(#x)<<" is "<<(x)<<endl
 #define f_tree tree<int, null_type, less<int>, rb_tree_tag,  tree_order_statistics_node_update>
 using namespace __gnu_pbds;
 using namespace std;
 
+//binary search maybe...
+
+// const int N=1200300;
+// vector<int> adj[N];
+// vector<int> color(N);
+
 struct node
 {
-    
+    int val,lazy;
+    node(){val=0; lazy=0;}
 };
- 
-node t[4*200200];
-int a[200200];
- 
-node merge(node a, node b)
+
+node t[4*N];
+
+
+void push(int id, int l, int r)
 {
-    node ans;
-    
-    return ans;
+    if(t[id].lazy!=0)
+    {
+        t[id].val=t[id].lazy;
+        if(l!=r)
+        {
+            t[2*id].lazy=t[id].lazy;
+            t[2*id+1].lazy=t[id].lazy;
+        }
+        t[id].lazy=0;
+    }
 }
- 
+
 void build(int id, int l, int r)
 {
-    if(l==r) {t[id].val=a[l]; t[id].dist=0; return;}
+    if(l==r) {t[id].val=bitmask[euler[l]]; t[id].lazy=0; return;}
     int mid=(l+r)/2;
     build(2*id,l,mid);
     build(2*id+1,mid+1,r);
-    t[id]=merge(t[2*id],t[2*id+1]);
+    t[id].val=(t[2*id].val|t[2*id+1].val);
 }
- 
-void update(int id, int l, int r, int pos, int value)
+
+void update(int id, int l, int r, int lq, int rq, int value)
 {
-    if(pos<l || pos>r) return;
-    if(l==r) {t[id].val=value; return;}
+    push(id,l,r);
+    if(lq>r || rq<l) return;
+    if(lq<=l && r<=rq) {t[id].lazy=value; push(id,l,r); return;}
     int mid=(l+r)/2;
-    update(2*id,l,mid,pos,value);
-    update(2*id+1,mid+1,r,pos,value);
-    t[id]=merge(t[2*id],t[2*id+1]);
+    update(2*id,l,mid,lq,rq,value);
+    update(2*id+1,mid+1,r,lq,rq,value);
+    t[id].val=(t[2*id].val|t[2*id+1].val);
 }
- 
-node query(int id, int l, int r, int lq, int rq)
+
+int query(int id, int l, int r, int lq, int rq)
 {
-    if(l>rq || r<lq) return node();
-    if(lq<=l && r<=rq) return t[id];
+    push(id,l,r);
+    if(l>rq || r<lq) return 0;
+    if(lq<=l && r<=rq) return t[id].val;
     int mid=(l+r)/2;
-    return merge(query(2*id,l,mid,lq,rq),query(2*id+1,mid+1,r,lq,rq));
+    return (query(2*id,l,mid,lq,rq)|query(2*id+1,mid+1,r,lq,rq));
 }
 
 void solve()
 {
-    build(1,0,n-1);
+    int n,q; cin>>n>>q; cnt=0;
+    for(int i=1;i<=n;i++) {int x; cin>>x; bitmask[i]=(1ll<<x);}
+    int m=n-1; while(m--)
+    {
+        int u,v; cin>>u>>v;
+        adj[u].pb(v),adj[v].pb(u);
+    } 
+    dfs(1);
+    lim=2*n;
+    build(1,0,lim-1);
     while(q--)
     {
-        update(1,0,n-1,pos,value);
-        a[pos]=value;
-        node ans = query(1,0,n-1,{l},{r});
-        cout<<ans.val<<endl;
+        int type; cin>>type;
+        if(type==1)
+        {
+            int s,x; cin>>s>>x;
+            update(1,0,lim-1,index[s].ff,index[s].ss,(1ll<<x));
+        }
+        else
+        {
+            int s;cin>>s;
+            int ans=query(1,0,lim-1,index[s].ff,index[s].ss);
+            cout<<__builtin_popcountll(ans)<<endl;
+        }
     }
 }
 
