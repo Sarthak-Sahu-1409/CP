@@ -53,7 +53,7 @@ struct DSU
 
 void solve()
 {
-    
+    DSU dsu = DSU(n);
 }
 
 int32_t main()
