@@ -44,7 +44,8 @@ struct DSU
     {
         int rootx=find(x);
         int rooty=find(y);
-        if(rank[rootx]<rank[rooty]) swap(x,y);
+        if(rootx==rooty) return;
+        if(rank[rootx]<rank[rooty]) swap(rootx,rooty);
         rank[rootx]+=rank[rooty];
         par[rooty]=rootx;
     }
