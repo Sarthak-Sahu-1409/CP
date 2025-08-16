@@ -63,3 +63,90 @@ int32_t main()
     solve();
     return 0;
 }
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class Solution {
+public:
+
+vector<vector<int>>mat; 
+int n;
+vector<vector<int>>vis;
+
+struct DSU
+{
+    int n; 
+    vector<int>par,rank;
+    DSU(int _n=0)
+    {
+        n=_n;
+        par.assign(n,0); 
+        rank.assign(n,0);
+        for(int i=0;i<n;i++) par[i]=i, rank[i]=1;
+    }
+    int find(int x)
+    {
+        if(x==par[x]) return x;
+        else return par[x]=find(par[x]);
+    }
+    void unite(int x, int y) 
+    {
+        int px=find(x), py=find(y);
+        if(px==py) return;
+        if(rank[px]<rank[py]) swap(px,py);
+        par[py]=px;
+        rank[px]+=rank[py];
+    }
+};
+
+DSU dsu;   
+
+void dfs(int i, int j)
+{
+    vis[i][j]=true;
+    int dx[4]={-1,+1,0,0};
+    int dy[4]={0,0,+1,-1};
+    for(int k=0;k<4;k++)
+    {
+        int ni=i+dx[k],nj=j+dy[k];
+        if(ni<0 || nj<0 || ni>=n || nj>=n) continue;
+        if(vis[ni][nj] || mat[ni][nj]==0) continue;
+        dsu.unite(i*n+j,ni*n+nj);
+        dfs(ni,nj);
+    }
+}
+
+int largestIsland(vector<vector<int>>& grid) 
+{
+    mat=grid;
+    n=grid.size();
+    dsu = DSU(n*n);
+    vis.assign(n,vector<int>(n,0));
+
+    for(int i=0;i<n;i++) 
+        for(int j=0;j<n;j++) 
+            if(!vis[i][j] && grid[i][j]==1) 
+                dfs(i,j);
+
+    int ans=0;
+
+    for(int i=0;i<n;i++) 
+    {
+        for(int j=0;j<n;j++)
+        {
+            if(mat[i][j]==1) continue;
+
+            set<int> s;
+            if(i-1>=0 && mat[i-1][j]==1) s.insert(dsu.find((i-1)*n+j));
+            if(j-1>=0 && mat[i][j-1]==1) s.insert(dsu.find(i*n+j-1));
+            if(i+1<n && mat[i+1][j]==1) s.insert(dsu.find((i+1)*n+j));
+            if(j+1<n && mat[i][j+1]==1) s.insert(dsu.find(i*n+j+1));
+
+            int size=1;
+            for(auto p: s) size += dsu.rank[p];
+            ans = max(ans,size);
+        }
+    }
+
+    return ans==0 ? n*n : ans;
+}
+};
